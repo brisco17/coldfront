@@ -1,0 +1,6 @@
+Dear System Administrator,
+
+FYI - This allocation for access to {{ allocation_type }} has expired:
+ {{allocation_url}}
+PI: {{pi}}
+Project: {{project_url}}

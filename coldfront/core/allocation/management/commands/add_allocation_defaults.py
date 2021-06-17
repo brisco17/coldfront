@@ -24,6 +24,7 @@ class Command(BaseCommand):
             AllocationUserStatusChoice.objects.get_or_create(name=choice)
 
         for name, attribute_type, has_usage, is_private in (
+            ('ADMIN EXPIRE NOTIFICATION', 'Yes/No', False, True),
             ('Cloud Account Name', 'Text', False, False),
             ('CLOUD_USAGE_NOTIFICATION', 'Yes/No', False, True),
             ('Core Usage (Hours)', 'Int', True, False),

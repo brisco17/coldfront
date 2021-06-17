@@ -4,6 +4,7 @@ import logging
 
 from django.conf import settings
 from django.core.exceptions import ImproperlyConfigured
+from django.urls import reverse
 
 from coldfront.core.allocation.models import (Allocation, AllocationAttribute,
                                               AllocationStatusChoice)
@@ -18,6 +19,7 @@ CENTER_NAME = import_from_settings('CENTER_NAME')
 CENTER_BASE_URL = import_from_settings('CENTER_BASE_URL')
 CENTER_PROJECT_RENEWAL_HELP_URL = import_from_settings(
     'CENTER_PROJECT_RENEWAL_HELP_URL')
+EMAIL_ADMIN_LIST = import_from_settings('EMAIL_ADMIN_LIST', [])
 EMAIL_SENDER = import_from_settings('EMAIL_SENDER')
 EMAIL_OPT_OUT_INSTRUCTION_URL = import_from_settings(
     'EMAIL_OPT_OUT_INSTRUCTION_URL')
@@ -186,3 +188,35 @@ def send_expiry_emails():
 
         logger.info('Allocation to {} expired email sent to PI {}.'.format(
             resource_name, allocation_obj.project.pi.username))
+
+        admin_expire_notification = allocation_obj.allocationattribute_set.filter(
+            allocation_attribute_type__name='ADMIN EXPIRE NOTIFICATION').first()
+        if admin_expire_notification and admin_expire_notification.value == 'Yes':
+
+            resource_name = allocation_obj.get_parent_resource.name
+
+            pi = allocation_obj.pi
+
+            domain_url = get_domain_url(allocation_obj)
+
+            allocation_url = '{}{}'.format(domain_url, reverse(
+                'allocation-detail', kwargs={'pk': allocation_obj.pk}))
+
+            project_url = '{}/{}/{}/'.format(CENTER_BASE_URL.strip('/'),
+                                            'project', allocation_obj.project.pk)
+
+            template_context = {
+                'allocation_type': resource_name,
+                'allocation_url': allocation_url,
+                "PI": pi,
+                'project_url': project_url
+            }
+
+            send_email_template('Allocation to {} has expired'.format(resource_name),
+                        'email/admin_allocation_expired.txt',
+                        template_context,
+                        EMAIL_SENDER,
+                        EMAIL_ADMIN_LIST
+                        )
+                
+
